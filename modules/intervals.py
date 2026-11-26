@@ -12,9 +12,13 @@ def create_demo():
     interval = w.Dropdown(options=list(INTERVALS),value="Perfect fifth",description="Interval")
     chord = w.Dropdown(options=["Two notes","Major triad (4:5:6)","Minor triad (10:12:15)"],description="Chord")
     out = w.Output()
+    figures = []  # Keep active ipympl figures alive until the next redraw.
     def update(*_):
         with out:
             out.clear_output(wait=True)
+            for old_fig in figures:
+                plt.close(old_fig)
+            figures.clear()
             f0 = root.value
             if chord.value == "Major triad (4:5:6)": freqs=[f0, f0*5/4, f0*3/2]
             elif chord.value == "Minor triad (10:12:15)": freqs=[f0, f0*6/5, f0*3/2]
@@ -28,7 +32,7 @@ def create_demo():
             a.set(title="Individual tones (vertically offset)",xlabel="Time (s)",ylabel="Amplitude"); a.legend()
             b.set(title="Superposition",xlabel="Time (s)",ylabel="Amplitude")
             for ax in (a,b): ax.grid(alpha=.2)
-            fig.tight_layout();plt.show();plt.close(fig)
+            fig.tight_layout();figures.append(fig);plt.show()
             if len(freqs)==2: print(f"Frequency difference: {abs(freqs[1]-freqs[0]):.2f} Hz (beat rate when tones are close).")
             print("Frequency ratios:", " : ".join(f"{f/freqs[0]:.4g}" for f in freqs))
     for c in (root,interval,chord): c.observe(update,names="value")
